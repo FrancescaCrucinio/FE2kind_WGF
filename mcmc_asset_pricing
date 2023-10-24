@@ -5,6 +5,7 @@ using Distributions;
 using Statistics;
 using StatsBase;
 using Random;
+using SpecialFunctions;
 using RCall;
 @rimport ks as rks;
 
