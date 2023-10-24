@@ -33,9 +33,9 @@ alpha_param = 0.01;
 m0 = 0.5;
 sigma0 = 0.1;
 # dt and number of iterations
-dt = 1e-03;
-Niter = 200;
-Nparticles = 1000;
+dt = 1e-02;
+Niter = 100;
+Nparticles = 10000;
 # initial distribution is given as input
 x0 = rand(Normal.(0.5, 0.1), Nparticles);
 x = wgf2kind_asset_pricing(Nparticles, dt, Niter, alpha_param, x0, m0, sigma0)
@@ -47,7 +47,9 @@ for i=1:length(x_values)
 end
 plot(x_values, pi_solution_wgf)
 
-
+in01 = (x[Niter, :] .<= 1) .& (x[Niter, :] .>= 0);
+histogram(x[Niter, in01], bins = 100, normalize = :pdf)
+plot!(x_values, pi_solution_wgf)
 
 # functional approximation
 function functional_wgf2kind(piSample, lambda, alpha_param, m0, sigma0, phi, K)

@@ -1,3 +1,4 @@
+push!(LOAD_PATH, "/Users/francescacrucinio/Documents/FE2kind_WGF")
 # Julia packages
 using Revise;
 using StatsPlots;
@@ -5,9 +6,9 @@ using Distributions;
 using Statistics;
 using StatsBase;
 using Random;
-using SpecialFunctions;
 using RCall;
 @rimport ks as rks;
+using RJmcmc_2kind;
 
 # set seed
 Random.seed!(1234);
@@ -25,3 +26,18 @@ function K(x, y)
 end
 phi(x) = (exp(x^2)-1) * (x <= 1) * (x >= 0);
 phi_gradient(x) = 2*x*exp(x^2) * (x <= 1) * (x >= 0);
+
+
+### reversible jump MCMC
+N = 1000000;
+X, k, c1_zero, p1 = RJMCMC_asset_pricing(N, phi, lambda, K);
+
+x_values = range(0, 1, length = 100);
+pi_solution_mcmc = zeros(length(x_values));
+for i=1:length(x_values)
+    pi_solution_mcmc[i] = lambda*c1_zero/p1;
+    pi_solution_mcmc[i] = pi_solution_mcmc[i]*mean(K(x_values[i], getindex.(X,1)));
+end
+pi_solution_mcmc = pi_solution_mcmc .+ phi.(x_values);
+plot!(x_values, pi_solution_mcmc)
+
