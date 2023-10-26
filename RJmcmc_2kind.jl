@@ -74,14 +74,14 @@ INPUTS
 'K' integral kernel
 =#
 function RJMCMC_toy_gaussian(N, phi, lambda, K)
+    proposal_std = sqrt(1);
     k = zeros(N);
     k = map(Int, k);
     k[1] = 1;
-    X = [rand(1)];
+    X = [proposal_std*randn(1)];
 
     p_birth = p_death = 1/3;
     count_zero_k = 1;
-    proposal_std = sqrt(2);
     for n=2:N
         if (k[n-1] > 1)
             pd = p_death;

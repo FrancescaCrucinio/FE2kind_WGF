@@ -15,13 +15,13 @@ Random.seed!(1234);
 # problem set up
 beta = 0.5;
 varK = 1-exp(-2*beta);
-lambda = 1/3;
+lambda = 1-10/11;
 K(x, y) = pdf.(Normal(x*exp(-beta), sqrt(varK)), y);
 phi(x) = (1-lambda)*pdf.(Normal(0, 1), x);
 # parameters
 alpha_param = 0.001;
 m0 = 0;
-sigma0 = 0.1;
+sigma0 = 1;
 # dt and number of iterations
 dt = 1e-03;
 Niter = 1000;
