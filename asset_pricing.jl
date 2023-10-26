@@ -29,13 +29,13 @@ phi(x) = (exp(x^2)-1) * (x <= 1) * (x >= 0);
 phi_gradient(x) = 2*x*exp(x^2) * (x <= 1) * (x >= 0);
 
 # parameters
-alpha_param = 0.01;
+alpha_param = 0.001;
 m0 = 0.5;
 sigma0 = 0.1;
 # dt and number of iterations
-dt = 1e-02;
+dt = 1e-03;
 Niter = 100;
-Nparticles = 10000;
+Nparticles = 1000;
 # initial distribution is given as input
 x0 = rand(Normal.(0.5, 0.1), Nparticles);
 x = wgf2kind_asset_pricing(Nparticles, dt, Niter, alpha_param, x0, m0, sigma0)
