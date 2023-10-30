@@ -34,7 +34,7 @@ m0 = 0.5;
 sigma0 = 0.1;
 # dt and number of iterations
 dt = 1e-03;
-Niter = 200;
+Niter = 1000;
 Nparticles = 1000;
 # initial distribution is given as input
 x0 = rand(Normal.(0.5, 0.1), Nparticles);
@@ -46,7 +46,7 @@ for i=1:length(x_values)
     pi_solution_wgf[i] = mean(K(x_values[i], x[Niter, :]));
 end
 nc_wgf = sum((0 .<= x[Niter, :] .<= 1))/Nparticles;
-pi_solution_wgf = lambda*pi_solution_wgf/nc_wgf .+ phi.(x_values);
+pi_solution_wgf = lambda*pi_solution_wgf + phi.(x_values);
 
 
 # check convergence
@@ -79,7 +79,7 @@ pi_solution_mcmc = zeros(length(x_values));
 for i=1:length(x_values)
     pi_solution_mcmc[i] = mean(K(x_values[i], getindex.(X,1)));
 end
-pi_solution_mcmc = lambda*pi_solution_mcmc*c1_zero/p1 .+ phi.(x_values);
+pi_solution_mcmc = lambda*pi_solution_mcmc*c1_zero/p1 + phi.(x_values);
 
 
 plot(x_values, pi_solution_mcmc)
