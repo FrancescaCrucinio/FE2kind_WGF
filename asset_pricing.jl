@@ -6,6 +6,7 @@ using Distributions;
 using Statistics;
 using StatsBase;
 using Random;
+using SpecialFunctions;
 using RCall;
 @rimport ks as rks;
 using wgf2kind;
@@ -36,18 +37,9 @@ sigma0 = 0.1;
 dt = 1e-03;
 Niter = 1000;
 Nparticles = 1000;
-# initial distribution is given as input
+### WGF
 x0 = rand(Normal.(0.5, 0.1), Nparticles);
 x = wgf2kind_asset_pricing(Nparticles, dt, Niter, alpha_param, x0, m0, sigma0);
-
-x_values = range(0, 1, length = 100);
-pi_solution_wgf = zeros(length(x_values));
-for i=1:length(x_values)
-    pi_solution_wgf[i] = mean(K(x_values[i], x[Niter, :]));
-end
-nc_wgf = sum((0 .<= x[Niter, :] .<= 1))/Nparticles;
-pi_solution_wgf = lambda*pi_solution_wgf + phi.(x_values);
-
 
 # check convergence
 function functional_wgf2kind(piSample, lambda, alpha_param, m0, sigma0, phi, K)
@@ -69,18 +61,33 @@ for i=1:Niter
 end
 plot(1:Niter, EWGF)
 
+# plot pi
+RKDEyWGF = rks.kde(x = x[Niter, :]);
+KDEx = rcopy(RKDEyWGF[2]);
+KDEy = abs.(rcopy(RKDEyWGF[3]));
+plot(KDEx, KDEy)
 
 ### reversible jump MCMC
 N = 100000;
 c1_zero = -1 + 1/2*sqrt(pi)*erfi(1);
 X, k, p1 = RJMCMC_asset_pricing(N, phi, lambda, K);
 
+# get smooth representations
+x_values = range(0, 1, length = 100);
+dx = x_values[2] - x_values[1];
+
+pi_solution_wgf = zeros(length(x_values));
+for i=1:length(x_values)
+    pi_solution_wgf[i] = mean(K(x_values[i], x[Niter, :]));
+end
+nc_wgf = sum((0 .<= x[Niter, :] .<= 1))/Nparticles;
+pi_solution_wgf = lambda*pi_solution_wgf/nc_wgf + phi.(x_values);
+
 pi_solution_mcmc = zeros(length(x_values));
 for i=1:length(x_values)
     pi_solution_mcmc[i] = mean(K(x_values[i], getindex.(X,1)));
 end
 pi_solution_mcmc = lambda*pi_solution_mcmc*c1_zero/p1 + phi.(x_values);
-
 
 plot(x_values, pi_solution_mcmc)
 plot!(x_values, pi_solution_wgf)
