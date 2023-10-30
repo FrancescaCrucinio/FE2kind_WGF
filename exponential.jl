@@ -13,7 +13,8 @@ using RJmcmc_2kind;
 # set seed
 Random.seed!(1234);
 # problem set up
-lambda = 1/3
+lambda = 1/3;
+lambda*(exp(1)-1)<1
 K(x, y) = exp.(x .- y);
 phi(x) = (1-lambda)*exp.(x);
 
