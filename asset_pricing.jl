@@ -35,11 +35,13 @@ m0 = 0.5;
 sigma0 = 0.1;
 # dt and number of iterations
 dt = 1e-03;
-Niter = 1000;
-Nparticles = 1000;
+Niter = 10000;
+Nparticles = 100;
 ### WGF
 x0 = rand(Normal.(0.5, 0.1), Nparticles);
-x = wgf2kind_asset_pricing(Nparticles, dt, Niter, alpha_param, x0, m0, sigma0);
+@elapsed begin
+    x = wgf2kind_asset_pricing(Nparticles, dt, Niter, alpha_param, x0, m0, sigma0);
+end
 
 # check convergence
 function functional_wgf2kind(piSample, lambda, alpha_param, m0, sigma0, phi, K)
@@ -68,9 +70,11 @@ KDEy = abs.(rcopy(RKDEyWGF[3]));
 plot(KDEx, KDEy)
 
 ### reversible jump MCMC
-N = 100000;
+N = 500000;
 c1_zero = -1 + 1/2*sqrt(pi)*erfi(1);
-X, k, p1 = RJMCMC_asset_pricing(N, phi, lambda, K);
+@elapsed begin
+    X, k, p1 = RJMCMC_asset_pricing(N, phi, lambda, K);
+end
 
 # get smooth representations
 x_values = range(0, 1, length = 100);
@@ -91,4 +95,5 @@ pi_solution_mcmc = lambda*pi_solution_mcmc*c1_zero/p1 + phi.(x_values);
 
 plot(x_values, pi_solution_mcmc)
 plot!(x_values, pi_solution_wgf)
-
+histogram!(x[Niter, (0 .<= x[Niter, :] .<= 1)], bins = 50, normalize=:pdf)
+histogram!(getindex.(X,1), bins = 100, normalize=:pdf)
