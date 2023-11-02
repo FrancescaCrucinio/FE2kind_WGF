@@ -75,6 +75,7 @@ INPUTS
 =#
 function RJMCMC_toy_gaussian(N, phi, lambda, K)
     proposal_std = sqrt(1);
+    proposal_std_update = 0.1;
     k = zeros(N);
     k = map(Int, k);
     k[1] = 1;
@@ -106,10 +107,10 @@ function RJMCMC_toy_gaussian(N, phi, lambda, K)
             k[n] = k[n-1];
             j = Int(sample(1:k[n]));
             proposal_k = k[n];
-            update_particle = proposal_std*randn(1)[1];
+            update_particle = proposal_std_update*randn(1)[1] + X[n-1][j];
             proposal_X = cat(X[n-1][1:(j-1)], update_particle, X[n-1][(j+1):k[n-1]], dims = 1);
-            p_accept = (mod_f(Int(proposal_k), proposal_X, phi, lambda, K)*pdf(Normal(0, proposal_std), X[n-1][j])/
-            mod_f(Int(k[n-1]), X[n-1], phi, lambda, K)*pdf(Normal(0, proposal_std), update_particle));
+            p_accept = (mod_f(Int(proposal_k), proposal_X, phi, lambda, K)/
+            mod_f(Int(k[n-1]), X[n-1], phi, lambda, K));
         end
         # accept/reject
         u = rand(1)[1];
