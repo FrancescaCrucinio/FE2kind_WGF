@@ -31,8 +31,8 @@ x_values = range(-5, 5, length = 100);
 y_values = pdf.(Normal(0, 1), x_values);
 dx = x_values[2] - x_values[1];
 
-Nrep = 10;
-lambdas = range(0, 1, length = 10);
+Nrep = 5;
+lambdas = range(0.1, 1, length = 10);
 Nlambdas = length(lambdas);
 # diagnostics
 tRJ = zeros(Nrep, Nlambdas);
@@ -74,3 +74,6 @@ for i=1:Nlambdas
         iseRJ[j, i] = dx*sum((y_values .- pi_solution_mcmc).^2);
     end
 end
+
+plot(lambdas, mean(iseRJ, dims = 1)[:])
+plot!(lambdas, mean(iseWGF, dims = 1)[:])
