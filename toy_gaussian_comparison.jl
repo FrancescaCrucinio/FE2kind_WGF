@@ -31,8 +31,8 @@ x_values = range(-5, 5, length = 100);
 y_values = pdf.(Normal(0, 1), x_values);
 dx = x_values[2] - x_values[1];
 
-Nrep = 5;
-lambdas = range(0.1, 1, length = 10);
+Nrep = 100;
+lambdas = range(0.1, 0.99, length = 10);
 Nlambdas = length(lambdas);
 # diagnostics
 tRJ = zeros(Nrep, Nlambdas);
@@ -48,6 +48,7 @@ for i=1:Nlambdas
     phi(x) = (1-lambda)*pdf.(Normal(0, 1), x);
     c1_zero = (1-lambda);
     for j=1:Nrep
+        print("$i, $j\n")
         # WGF
         x0 = rand(Normal.(0, 0.1), Nparticles);
         tWGF[j, i] = @elapsed begin
@@ -75,5 +76,27 @@ for i=1:Nlambdas
     end
 end
 
-plot(lambdas, mean(iseRJ, dims = 1)[:])
-plot!(lambdas, mean(iseWGF, dims = 1)[:])
+plt1 = plot(lambdas, mean(iseRJ, dims = 1)[:], label = "RJ-MCMC", 
+    lw = 3, linestyle = :dash, color = :gray)
+plot!(plt1, lambdas, mean(iseWGF, dims = 1)[:], label = "FE2kind-WGF", 
+    legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dot, color = :black)
+# savefig(plt1, "ise_lambda_toy_gaussian.pdf")
+
+
+plt2 = plot(lambdas, mean(meanRJ.^2, dims = 1)[:], label = "RJ-MCMC", 
+    lw = 3, linestyle = :dash, color = :gray)
+plot!(plt2, lambdas, mean(meanWGF.^2, dims = 1)[:], label = "FE2kind-WGF", 
+    legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dot, color = :black)
+
+
+plt3 = plot(lambdas, mean((varRJ .- 1).^2, dims = 1)[:], label = "RJ-MCMC", 
+    lw = 3, linestyle = :dash, color = :gray)
+plot!(plt3, lambdas, mean((varWGF .- 1).^2, dims = 1)[:], label = "FE2kind-WGF", 
+    legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dot, color = :black)
+# savefig(plt3, "variance_lambda_toy_gaussian.pdf")
+
+
+
+
+mean(tRJ, dims = 1)
+mean(tWGF, dims = 1)
