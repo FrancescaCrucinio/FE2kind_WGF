@@ -15,7 +15,7 @@ Random.seed!(1234);
 # problem set up
 beta = 0.5;
 varK = 1-exp(-2*beta);
-lambda = 10/11;
+lambda = 1-10/11;
 K(x, y) = pdf.(Normal(x*exp(-beta), sqrt(varK)), y);
 phi(x) = (1-lambda)*pdf.(Normal(0, 1), x);
 # parameters
@@ -30,7 +30,7 @@ x = zeros(Niter, Nparticles);
 # initial distribution is given as input:
 x0 = rand(Normal.(0, 0.1), Nparticles);
 @elapsed begin
-x = wgf2kind_toy_gaussian(Nparticles, dt, Niter, alpha_param, x0, m0, sigma0);
+x = wgf2kind_toy_gaussian(Nparticles, dt, Niter, alpha_param, x0, m0, sigma0, lambda);
 end
 # functional approximation
 function functional_wgf2kind(piSample, lambda, alpha_param, m0, sigma0, phi, K)

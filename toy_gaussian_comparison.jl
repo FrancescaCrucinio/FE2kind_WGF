@@ -31,7 +31,7 @@ x_values = range(-5, 5, length = 100);
 y_values = pdf.(Normal(0, 1), x_values);
 dx = x_values[2] - x_values[1];
 
-Nrep = 100;
+Nrep = 5;
 lambdas = range(0.1, 0.99, length = 10);
 Nlambdas = length(lambdas);
 # diagnostics
@@ -52,7 +52,7 @@ for i=1:Nlambdas
         # WGF
         x0 = rand(Normal.(0, 0.1), Nparticles);
         tWGF[j, i] = @elapsed begin
-        x = wgf2kind_toy_gaussian(Nparticles, dt, Niter, alpha_param, x0, m0, sigma0);
+        x = wgf2kind_toy_gaussian(Nparticles, dt, Niter, alpha_param, x0, m0, sigma0, lambda);
         end
         meanWGF[j, i] = mean(x[Niter, :]);
         varWGF[j, i] = var(x[Niter, :]);
