@@ -149,8 +149,16 @@ function wgf2kind_gpssm(N, dt, Niter, alpha_param, x0, m0, sigma0, xs, zs)
     function K_mean(y) 
         return(transpose(cov_op.(y, xs))*matrixH*zs)
     end
+    function K_mean_derivative(y) 
+        cov_op_derivative = cov_op.(y, xs) .* (xs .- y)/3.59^2;
+        return(transpose(cov_op_derivative)*matrixH*zs)
+    end
     function K_variance(y) 
         return(cov_op(y, y) - transpose(cov_op.(y, xs))*matrixH*cov_op.(y, xs))
+    end 
+    function K_variance_derivative(y) 
+        cov_op_derivative = cov_op.(y, xs) .* (xs .- y)/3.59^2;
+        return(-2*transpose(cov_op_derivative)*matrixH)
     end 
     function K(x, y)
         transition_mean = K_mean(y);
@@ -169,14 +177,15 @@ function wgf2kind_gpssm(N, dt, Niter, alpha_param, x0, m0, sigma0, xs, zs)
         for i=1:N
             mean_k[i] = mean(K.(x[n,i], x[n,:]));
             outside_integral[i] = -alpha_param*(x[n,i] - m0)./(sigma0^2) +
-                mean(K.(x[n,i], x[n,:]).*(K_mean(x[n,:]) .- x[n,i])./K_variance(x[n,:]))/(lambda*mean_k[i]);
+                mean(K.(x[n,i], x[n,:]).*(K_mean.(x[n,:]) .- x[n,i])./K_variance.(x[n,:]))/mean_k[i];
         end
     
         inside_integral = zeros(N, 1);
         for i=1:N
-            # integrand = (-lambda*K.(x[n,:], x[n, i]).*(x[n,i] .- x[n,:]*exp(-beta))/varK)./
-            # (lambda*mean_k);
-            # inside_integral[i] = mean(integrand);
+            integrand = (K.(x[n,:], x[n,i]).*(x[n,:] .- K_mean(x[n,i]))/K_variance(x[n,i])^3)./mean_k;
+            integrand = integrand .* (K_mean_derivative(x[n,i])*K_variance(x[n,i]) .+
+                 (x[n,:] .- K_mean_derivative(x[n,i])).*K_variance_derivative(x[n,i]));
+            inside_integral[i] = mean(integrand);
         end
     
         # gradient and drift

@@ -27,9 +27,16 @@ for i=1:m
 end
 matrixH = inv(matrixK + I(m));
 # define kernel and forcing
+function K_mean(y) 
+    return(transpose(cov_op.(y, xs))*matrixH*zs)
+end
+function K_mean_derivative(y) 
+    cov_op_derivative = cov_op.(y, xs) .* (xs .- y)/3.59^2;
+    return(transpose(cov_op_derivative)*matrixH*zs)
+end
 function K(x, y)
-    transition_mean = transpose(cov_op.(y, xs))*matrixH*zs;
-    transition_variance = cov_op(y, y) - transpose(cov_op.(y, xs))*matrixH*cov_op.(y, xs);
+    transition_mean = K_mean(y);
+    transition_variance = K_variance(y);
     return(pdf.(Normal(transition_mean, transition_variance), x))
 end
 
@@ -46,7 +53,7 @@ plot!(x, gp_mean)
 
 ### WGF 
 # parameters
-alpha_param = 0.001;
+alpha_param = 0.000;
 m0 = 0;
 sigma0 = 1;
 # dt and number of iterations
@@ -55,19 +62,19 @@ Niter = 1000;
 Nparticles = 100;
 x = zeros(Niter, Nparticles);
 # initial distribution is given as input:
-x0 = rand(10*Normal.(0, 1) - 5, Nparticles);
+x0 = rand(Normal.(0, 2), Nparticles);
 @elapsed begin
 x = wgf2kind_gpssm(Nparticles, dt, Niter, alpha_param, x0, m0, sigma0, xs, zs);
 end
 # functional approximation
-function functional_wgf2kind(piSample, lambda, alpha_param, m0, sigma0, K)
+function functional_wgf2kind(piSample, alpha_param, m0, sigma0, K)
     Rpihat = rks.kde(x = piSample, var"eval.points" = piSample);
     pihat = abs.(rcopy(Rpihat[3]));
     loglik = zeros(length(piSample));
     for i=1:length(piSample)
         loglik[i] = mean(K.(piSample[i], piSample));
     end
-    kl = mean(log.(pihat./(lambda*loglik)));
+    kl = mean(log.(pihat./loglik));
     prior = pdf.(Normal(m0, sigma0), piSample);
     kl_prior = mean(log.(pihat./prior));
     return kl+alpha_param*kl_prior;
@@ -75,14 +82,14 @@ end
 
 EWGF = zeros(Niter);
 for i=1:Niter
-    EWGF[i] = functional_wgf2kind(x[i, :], lambda, alpha_param, m0, sigma0, K);
+    EWGF[i] = functional_wgf2kind(x[i, :], alpha_param, m0, sigma0, K);
 end
 plot(1:Niter, EWGF)
 
 x_values = range(-12, 12, length = 100);
 pi_solution_wgf = zeros(length(x_values));
 for i=1:length(x_values)
-    pi_solution_wgf[i] = mean(K(x_values[i], x[Niter, :]))
+    pi_solution_wgf[i] = mean(K.(x_values[i], x[Niter, :]))
 end
 plot(x_values, pi_solution_wgf)
 
