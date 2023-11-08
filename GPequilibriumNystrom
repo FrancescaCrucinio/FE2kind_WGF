@@ -1,0 +1,71 @@
+# Julia packages
+push!(LOAD_PATH, "/Users/francescacrucinio/Documents/FE2kind_WGF")
+using StatsPlots;
+using Distributions;
+using Statistics;
+using StatsBase;
+using Random;
+using LinearAlgebra;
+using Revise;
+
+# set seed
+Random.seed!(12345);
+# data from SSM
+m = 20;
+f(x) = 0.01*x^3 - 0.2*x^2 + 0.2*x;
+xs = 10*rand(m) .- 5;
+zs = f.(xs) .+ randn(m);
+
+cov_op(x, y) = exp(-(x - y)^2/(2*3.59^2))*4.21^2;
+matrixK = zeros(m, m);
+for i=1:m
+    matrixK[i, :] = cov_op.(xs[i], xs);
+end
+matrixH = inv(matrixK + I(m));
+# define kernel and forcing
+function K_mean(y) 
+    return(transpose(cov_op.(y, xs))*matrixH*zs)
+end
+function K_variance(y) 
+    return(cov_op(y, y) - transpose(cov_op.(y, xs))*matrixH*cov_op.(y, xs))
+end 
+function K(x, y)
+    transition_mean = K_mean(y);
+    transition_variance = K_variance(y);
+    return(pdf.(Normal(transition_mean, transition_variance), x))
+end
+
+# check GP fit
+x = range(-5, 5, length = 100);
+gp_mean = zeros(100);
+for i=1:100
+    gp_mean[i] = transpose(cov_op.(x[i], xs))*matrixH*zs;
+end
+plot(x, f.(x))
+scatter!(xs, zs)
+plot!(x, gp_mean)
+
+
+### Nystrom
+q = 150;
+xq = range(-12, 8, length = q+1);
+dx = xq[2] - xq[1];
+M = zeros(q+1, q+1);
+for i=1:(q+1)
+    for j=1:(q+1)
+        M[i, j] = -dx*K(xq[i], xq[j]);
+    end
+end
+M[:, 1] = M[:, 1]/2;
+M[:, q+1] = M[:, q+1]/2;
+M = M + I(q+1);
+
+Mp = [M; dx*ones(1, q+1)];
+Mp[q+2, 1] = Mp[q+2, 1]/2;
+Mp[q+2, q+1] = Mp[q+2, q+1]/2;
+bp = zeros(1, q+2);
+bp[q+2] = 1;
+
+u = Mp \ transpose(bp);
+
+plot(xq, u)

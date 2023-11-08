@@ -30,10 +30,9 @@ matrixH = inv(matrixK + I(m));
 function K_mean(y) 
     return(transpose(cov_op.(y, xs))*matrixH*zs)
 end
-function K_mean_derivative(y) 
-    cov_op_derivative = cov_op.(y, xs) .* (xs .- y)/3.59^2;
-    return(transpose(cov_op_derivative)*matrixH*zs)
-end
+function K_variance(y) 
+    return(cov_op(y, y) - transpose(cov_op.(y, xs))*matrixH*cov_op.(y, xs))
+end 
 function K(x, y)
     transition_mean = K_mean(y);
     transition_variance = K_variance(y);
