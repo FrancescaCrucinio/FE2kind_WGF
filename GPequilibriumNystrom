@@ -36,19 +36,23 @@ function K(x, y)
 end
 
 # check GP fit
-x = range(-5, 5, length = 100);
+x = range(-12, 8, length = 100);
 gp_mean = zeros(100);
+gp_variance = zeros(100);
 for i=1:100
     gp_mean[i] = transpose(cov_op.(x[i], xs))*matrixH*zs;
+    gp_variance[i] = cov_op(x[i], x[i]) - transpose(cov_op.(x[i], xs))*matrixH*cov_op.(x[i], xs);
 end
 plot(x, f.(x))
 scatter!(xs, zs)
 plot!(x, gp_mean)
+plot!(x, gp_mean+gp_variance, linestyle=:dash, color = :gray)
+plot!(x, gp_mean-gp_variance, linestyle=:dash, color = :gray)
 
 
 ### Nystrom
 q = 150;
-xq = range(-12, 8, length = q+1);
+xq = range(-2, 2, length = q+1);
 dx = xq[2] - xq[1];
 M = zeros(q+1, q+1);
 for i=1:(q+1)
