@@ -9,6 +9,8 @@ export wgf2kind_asset_pricing
 export wgf2kind_toy_gaussian
 export wgf2kind_gpssm
 export wgf2kind_kl_squared_exp
+export wgf2kind_kl_exp
+
 
 #= WGF for asset pricing
 OUTPUTS
@@ -232,6 +234,53 @@ function wgf2kind_kl_squared_exp(N, dt, Niter, alpha_param, x0, m0, sigma0, lamb
         inside_integral = zeros(N, 1);
         for i=1:N
             integrand = (-lambda*K.(x[n,:], x[n, i]).*(x[n,i] .- x[n,:])*2)./
+            (lambda*mean_k);
+            inside_integral[i] = mean(integrand);
+        end
+    
+        # gradient and drift
+        drift = inside_integral + outside_integral;
+        # update locations
+        x[n+1, :] = x[n, :] .+ dt * drift .+ sqrt(2*(1+alpha_param)*dt)*randn(N, 1);
+    end
+    return x
+end
+
+
+
+#= WGF for KL expansion of exponential
+OUTPUTS
+1 - particle locations
+INPUTS
+'N' number of particles
+'dt' discretisation step
+'Niter' number of iterations
+'alpha_param' regularisation parameter
+'x0' initial distribution
+'m0' mean of prior
+'sigma0' standard deviation of prior
+=#
+function wgf2kind_kl_exp(N, dt, Niter, alpha_param, x0, m0, sigma0, lambda)
+    # parameters
+    K(x, y) = exp.(-abs.(y .- x));
+
+    # initialise a matrix x storing the particles
+    x = zeros(Niter, N);
+     # initial distribution is given as input:
+    x[1, :] = x0;
+
+    for n=1:(Niter-1)
+        outside_integral = zeros(N, 1);
+        mean_k = zeros(N, 1);
+        for i=1:N
+            mean_k[i] = mean(K.(x[n,i], x[n,:]));
+            outside_integral[i] = -alpha_param*(x[n,i] - m0)./(sigma0^2) +
+                (lambda*mean(K.(x[n,i], x[n,:]).*sign.(x[n,:] .- x[n,i])))/(lambda*mean_k[i]);
+        end
+    
+        inside_integral = zeros(N, 1);
+        for i=1:N
+            integrand = (-lambda*K.(x[n,:], x[n, i]).*sign.(x[n,i] .- x[n,:]))./
             (lambda*mean_k);
             inside_integral[i] = mean(integrand);
         end
