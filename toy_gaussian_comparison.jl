@@ -21,10 +21,10 @@ alpha_param = 0.001;
 m0 = 0;
 sigma0 = 0.1;
 # dt and number of iterations
-dt = 1e-03;
-Niter = 1000;
+dt = 1e-02;
+Niter = 200;
 Nparticles = 100;
-Npaths = 60000;
+Npaths = 20000;
 
 # true solution
 x_values = range(-5, 5, length = 100);
