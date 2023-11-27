@@ -7,6 +7,7 @@ using LinearAlgebra;
 
 export wgf2kind_asset_pricing
 export wgf2kind_toy_gaussian
+export wgf2kind_toy_gaussian_noreference
 export wgf2kind_gpssm
 export wgf2kind_kl_squared_exp
 export wgf2kind_kl_exp
@@ -121,6 +122,69 @@ function wgf2kind_toy_gaussian(N, dt, Niter, alpha_param, x0, m0, sigma0, lambda
         x[n+1, :] = x[n, :] .+ dt * drift .+ sqrt(2*(1+alpha_param)*dt)*randn(N, 1);
     end
     return x
+end
+
+
+#= WGF for toy Gaussian model
+OUTPUTS
+1 - particle locations
+INPUTS
+'N' number of particles
+'dt' discretisation step
+'Niter' number of iterations
+'alpha_param' regularisation parameter
+'x0' initial distribution
+'m0' mean of prior
+'sigma0' standard deviation of prior
+'lambda' integral equation parameter
+=#
+function wgf2kind_toy_gaussian_noreference(N, dt, Niter, alpha_param, x0, m0, sigma0, lambda)
+    # parameters
+    beta = 0.5;
+    varK = 1-exp(-2*beta);
+    # define kernel and forcing
+    K(x, y) = pdf.(Normal(x*exp(-beta), sqrt(varK)), y);
+    phi(x) = (1-lambda)*pdf.(Normal(0, 1), x);
+
+    # initialise a matrix x storing the particles
+    x = zeros(Niter, N);
+    x[1, :] = x0;
+    x_noref = zeros(Niter, N);
+    x_noref[1, :] = x0;
+
+    for n=1:(Niter-1)
+        outside_integral = zeros(N, 1);
+        mean_k = zeros(N, 1);
+        outside_integral_noref = zeros(N, 1);
+        mean_k_noref = zeros(N, 1);
+        for i=1:N
+            mean_k[i] = mean(K.(x[n,i], x[n,:]));
+            mean_k_noref[i] = mean(K.(x_noref[n,i], x_noref[n,:]));
+            outside_integral[i] = -alpha_param*(x[n,i] - m0)./(sigma0^2) +
+                (lambda*mean(K.(x[n,i], x[n,:]).*(x[n,:] .- x[n,i]*exp(-beta)))*exp(-beta)/varK - phi(x[n,i])*x[n,i])/(lambda*mean_k[i]+phi(x[n,i]));
+            outside_integral_noref[i] = (lambda*mean(K.(x_noref[n,i], x_noref[n,:]).*(x_noref[n,:] .- x_noref[n,i]*exp(-beta)))*exp(-beta)/varK - phi(x_noref[n,i])*x_noref[n,i])/(lambda*mean_k_noref[i]+phi(x_noref[n,i]));
+        end
+    
+        inside_integral = zeros(N, 1);
+        inside_integral_noref = zeros(N, 1);
+        for i=1:N
+            integrand = (-lambda*K.(x[n,:], x[n, i]).*(x[n,i] .- x[n,:]*exp(-beta))/varK)./
+            (lambda*mean_k .+ phi(x[n,:]));
+            inside_integral[i] = mean(integrand);
+            integrand_noref = (-lambda*K.(x_noref[n,:], x_noref[n, i]).*(x_noref[n,i] .- x_noref[n,:]*exp(-beta))/varK)./
+            (lambda*mean_k_noref .+ phi(x_noref[n,:]));
+            inside_integral_noref[i] = mean(integrand_noref);
+        end
+    
+        # gradient and drift
+        drift = inside_integral + outside_integral;
+        drift_noref = inside_integral_noref + outside_integral_noref;
+        # update locations
+        Z = randn(N, 1);
+        x[n+1, :] = x[n, :] .+ dt * drift .+ sqrt(2*(1+alpha_param)*dt)*Z;
+        x_noref[n+1, :] = x_noref[n, :] .+ dt * drift_noref .+ sqrt(2*(1+alpha_param)*dt)*Z;
+    end
+    return x, x_noref
 end
 
 

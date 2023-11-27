@@ -31,7 +31,7 @@ x_values = range(-5, 5, length = 100);
 y_values = pdf.(Normal(0, 1), x_values);
 dx = x_values[2] - x_values[1];
 
-Nrep = 5;
+Nrep = 100;
 lambdas = range(0.1, 0.99, length = 10);
 Nlambdas = length(lambdas);
 # diagnostics
