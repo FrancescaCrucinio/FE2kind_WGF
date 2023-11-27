@@ -65,7 +65,19 @@ for i=1:Nalphas
 end
 
 plt1 = plot(alphas[:], mean(ise_ref, dims = 1)[:], label = "Ref", 
-    lw = 5, linestyle = :solid, color = :gray)
+    lw = 5, linestyle = :dash, color = :gray)
 plot!(plt1, alphas[:], mean(ise_noref, dims = 1)[:], label = "No ref", 
     legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dot, color = :black)
 # savefig(plt1, "ise_toy_gaussian_reference.pdf")
+
+plt2 = plot(alphas[:], mean(mean_ref.^2, dims = 1)[:], label = "Ref", 
+    lw = 3, linestyle = :dash, color = :gray)
+plot!(plt2, alphas[:], mean(mean_noref.^2, dims = 1)[:], label = "No ref", 
+    legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dot, color = :black)
+# savefig(plt2, "mean_toy_gaussian_reference.pdf")
+
+plt3 = plot(alphas[:], mean((var_ref .- 1).^2, dims = 1)[:], label = "Ref", 
+    lw = 3, linestyle = :dash, color = :gray)
+plot!(plt3, alphas[:], mean((var_noref .- 1).^2, dims = 1)[:], label = "No refF", 
+    legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dot, color = :black)
+# savefig(plt3, "variance_toy_gaussian_reference.pdf")

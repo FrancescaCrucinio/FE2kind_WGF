@@ -17,7 +17,7 @@ beta = 0.5;
 varK = 1-exp(-2*beta);
 K(x, y) = pdf.(Normal(x*exp(-beta), sqrt(varK)), y);
 # parameters
-alpha_param = 0.001;
+alpha_param = 0.01;
 m0 = 0;
 sigma0 = 0.1;
 # dt and number of iterations
