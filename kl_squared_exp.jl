@@ -18,38 +18,38 @@ K(x, y) = exp.(-(y .- x).^2);
 a = 1;
 
 ### Nystrom
-q = 100;
-xq = range(-a, a, length = q+1);
+q = 500;
+xq = range(-a, a, length = q);
 dx = xq[2] - xq[1];
-Kmatrix = zeros(q+1, q+1);
-for i=1:(q+1)
-    for j=1:(q+1)
+Kmatrix = zeros(q, q);
+for i=1:q
+    for j=1:q
         Kmatrix[i, j] = K(xq[i], xq[j]);
     end
 end
 Kmatrix[:, 1] = Kmatrix[:, 1]/2;
-Kmatrix[:, q+1] = Kmatrix[:, q+1]/2;
+Kmatrix[:, q] = Kmatrix[:, q]/2;
 
 eigvalues = eigvals(Kmatrix);
 eigvectors = eigvecs(Kmatrix);
 
 # set eigenvalue
-eig_index = q+1;
+eig_index = q;
 lambda_nystrom = real(eigvalues[eig_index])*dx;
 solution_nystrom = abs.(real.(eigvectors[:, eig_index]))/sqrt(dx);
 
 ### WGF 
 # parameters
-alpha_param = 0.001;
+alpha_param = 0.01;
 m0 = 0;
-sigma0 = 0.1;
+sigma0 = 0.05;
 # dt and number of iterations
-dt = 1e-03;
-Niter = 200;
-Nparticles = 200;
+dt = 2e-03;
+Niter = 400;
+Nparticles = 500;
 x = zeros(Niter, Nparticles);
 # initial distribution is given as input:
-x0 = rand(Normal.(0, 0.1), Nparticles);
+x0 = rand(Normal.(0, 0.05), Nparticles);
 @elapsed begin
 x = wgf2kind_kl_squared_exp(Nparticles, dt, Niter, alpha_param, x0, m0, sigma0, lambda);
 end
@@ -77,13 +77,9 @@ pi_solution_wgf = zeros(length(xq));
 for i=1:length(xq)
     pi_solution_wgf[i] = lambda*mean(K.(xq[i], x[Niter, :]))
 end
-
-plot(xq, solution_nystrom, label = "Nystrom", lw = 3, linestyle = :dash, color = :gray)
-plot!(xq, pi_solution_wgf, label = "FE2kind-WGF", lw = 3, linestyle = :dot, color = :gray, legendfontsize = 8, legend=:topright)
+sum((x[Niter, :] .<= 1) .* (x[Niter, :] .>= -1))/Nparticles
 
 
-p1 = plot(xq, solution_nystrom/sum(solution_nystrom), label = "Nystrom", 
-lw = 3, linestyle = :dash, color = :gray)
-plot!(p1, xq, pi_solution_wgf/sum(pi_solution_wgf), label = "FE2kind-WGF", 
-lw = 3, linestyle = :dot, color = :gray, legendfontsize = 8, legend=:topright)
+p1 = plot(xq, solution_nystrom, label = "Nystrom", lw = 3, linestyle = :dash, color = :gray)
+plot!(p1, xq, pi_solution_wgf, label = "FE2kind-WGF", lw = 3, linestyle = :dot, color = :gray, legendfontsize = 8, legend=:topright)
 # savefig(p1, "kl_squared_exponential.pdf")

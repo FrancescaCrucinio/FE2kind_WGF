@@ -78,6 +78,6 @@ plot!(plt2, alphas[:], mean(mean_noref.^2, dims = 1)[:], label = "No ref",
 
 plt3 = plot(alphas[:], mean((var_ref .- 1).^2, dims = 1)[:], label = "Ref", 
     lw = 3, linestyle = :dash, color = :gray)
-plot!(plt3, alphas[:], mean((var_noref .- 1).^2, dims = 1)[:], label = "No refF", 
+plot!(plt3, alphas[:], mean((var_noref .- 1).^2, dims = 1)[:], label = "No ref", 
     legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dot, color = :black)
 # savefig(plt3, "variance_toy_gaussian_reference.pdf")
