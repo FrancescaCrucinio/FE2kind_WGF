@@ -8,7 +8,8 @@ using Random;
 using LinearAlgebra;
 using Revise;
 using LaTeXStrings
-
+using RCall;
+@rimport ks as rks;
 using wgf2kind;
 
 # set seed
@@ -84,9 +85,9 @@ alpha_param = 0.001;
 m0 = 0;
 sigma0 = 1;
 # dt and number of iterations
-dt = 5e-03;
 Niter = 100;
 Nparticles = 200;
+dt = 5e-03;
 x = zeros(Niter, Nparticles);
 # initial distribution is given as input:
 x0 = rand(Normal.(0, 5), Nparticles);
@@ -124,14 +125,21 @@ lw = 3, linestyle = :dot, color = :gray, legendfontsize = 10, legend=:topleft)
 # savefig(p1, "gp_ssm.pdf")
 
 # check invariance
-x_new = zeros(100*Nparticles);
-for i=1:(100*Nparticles)
-    index = sample(1:Nparticles)
-    x_new[i] = K_mean(x[Niter, index]) + sqrt(K_variance(x[Niter, index]))*randn(1)[1];
+M = 20000;
+x_new_wgf = zeros(M);
+x_new_nystrom = zeros(M);
+for i=1:M
+    index_wgf = sample(1:Nparticles)
+    x_new_wgf[i] = K_mean(x[Niter, index_wgf]) + sqrt(K_variance(x[Niter, index_wgf]))*randn(1)[1];
+    index_nystrom = walker_sampler(u[:], 1);
+    x_new_nystrom[i] = K_mean(xq[index_nystrom][1]) + sqrt(K_variance(xq[index_nystrom][1]))*randn(1)[1];
 end
 
 
-p2 = histogram(x_new, normalize = :pdf, bins = 200, color = :gray, label = L"x_{k+1}")
-plot!(p2, xq, pi_solution_wgf, lw = 3, linestyle = :solid, color = :black, label = "FE2kind-WGF",
+p2 = histogram(x_new, normalize = :pdf, bins = 200, color = :gray, label = "FE2kind-WGF", alpha = 0.3)
+histogram!(p2, x_new_nystrom, normalize = :pdf, bins = 200, color = :red, label = "Nystrom", alpha = 0.2)
+plot!(p2, xq, pi_solution_wgf, lw = 3, linestyle = :dashdot, color = :black, label = "FE2kind-WGF",
+legendfontsize = 10, legend=:topleft)
+plot!(p2, xq, u, lw = 3, linestyle = :dashdot, color = :red, label = "Nystrom",
 legendfontsize = 10, legend=:topleft)
 # savefig(p2, "gp_ssm_histogram.pdf")
