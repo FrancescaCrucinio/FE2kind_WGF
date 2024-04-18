@@ -126,13 +126,13 @@ plot!(plt2, lambdas, mean(meanWGF_concentrated.^2, dims = 1)[:], label = "FE2kin
 
 
 plt3 = plot(lambdas, mean((varRJ .- 1).^2, dims = 1)[:], label = "RJ-MCMC", 
-    lw = 3, linestyle = :solid, color = :black)
+    lw = 3, linestyle = :solid, color = :black, legend = false)
 plot!(plt3, lambdas, mean((varWGF .- 1).^2, dims = 1)[:], label = "FE2kind-WGF, target", 
-    legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dot, color = :gray)
+    legendfontsize = 15, lw = 3, linestyle = :dot, color = :gray)
 plot!(plt3, lambdas, mean((varWGF_diffuse .- 1).^2, dims = 1)[:], label = "FE2kind-WGF, diffuse", 
-    legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dash, color = :gray)
+    legendfontsize = 15, lw = 3, linestyle = :dash, color = :gray)
 plot!(plt3, lambdas, mean((varWGF_concentrated .- 1).^2, dims = 1)[:], label = "FE2kind-WGF, concentrated", 
-    legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dashdot, color = :gray)
+    legendfontsize = 15, lw = 3, linestyle = :dashdot, color = :gray)
 # savefig(plt3, "variance_lambda_toy_gaussian.pdf")
 
 
