@@ -147,30 +147,52 @@ function wgf2kind_toy_gaussian_noreference(N, dt, Niter, alpha_param, x0, m0, si
     phi(x) = (1-lambda)*pdf.(Normal(0, 1), x);
 
     # initialise a matrix x storing the particles
-    x = zeros(Niter, N);
-    x[1, :] = x0;
+    x_target = zeros(Niter, N);
+    x_target[1, :] = x0;
+    x_diffuse = zeros(Niter, N);
+    x_diffuse[1, :] = x0;
+    x_concentrated = zeros(Niter, N);
+    x_concentrated[1, :] = x0;
     x_noref = zeros(Niter, N);
     x_noref[1, :] = x0;
 
     for n=1:(Niter-1)
         outside_integral = zeros(N, 1);
         mean_k = zeros(N, 1);
+        outside_integral_concentrated = zeros(N, 1);
+        mean_k_concentrated = zeros(N, 1);
+        outside_integral_diffuse = zeros(N, 1);
+        mean_k_diffuse = zeros(N, 1);
         outside_integral_noref = zeros(N, 1);
         mean_k_noref = zeros(N, 1);
         for i=1:N
-            mean_k[i] = mean(K.(x[n,i], x[n,:]));
+            mean_k[i] = mean(K.(x_target[n,i], x_target[n,:]));
+            mean_k_diffuse[i] = mean(K.(x_diffuse[n,i], x_diffuse[n,:]));
+            mean_k_concentrated[i] = mean(K.(x_concentrated[n,i], x_concentrated[n,:]));
             mean_k_noref[i] = mean(K.(x_noref[n,i], x_noref[n,:]));
-            outside_integral[i] = -alpha_param*(x[n,i] - m0)./(sigma0^2) +
-                (lambda*mean(K.(x[n,i], x[n,:]).*(x[n,:] .- x[n,i]*exp(-beta)))*exp(-beta)/varK - phi(x[n,i])*x[n,i])/(lambda*mean_k[i]+phi(x[n,i]));
+            outside_integral[i] = -alpha_param*(x_target[n,i] - m0)./(sigma0^2) +
+                (lambda*mean(K.(x_target[n,i], x_target[n,:]).*(x_target[n,:] .- x_target[n,i]*exp(-beta)))*exp(-beta)/varK - phi(x_target[n,i])*x_target[n,i])/(lambda*mean_k[i]+phi(x_target[n,i]));
+            outside_integral_diffuse[i] = -alpha_param*(x_diffuse[n,i] - m0)./(2^2) +
+                (lambda*mean(K.(x_diffuse[n,i], x_diffuse[n,:]).*(x_diffuse[n,:] .- x_diffuse[n,i]*exp(-beta)))*exp(-beta)/varK - phi(x_diffuse[n,i])*x_diffuse[n,i])/(lambda*mean_k_diffuse[i]+phi(x_diffuse[n,i]));
+            outside_integral_concentrated[i] = -alpha_param*(x_concentrated[n,i] - m0)./(0.1^2) +
+                (lambda*mean(K.(x_concentrated[n,i], x_concentrated[n,:]).*(x_concentrated[n,:] .- x_concentrated[n,i]*exp(-beta)))*exp(-beta)/varK - phi(x_concentrated[n,i])*x_concentrated[n,i])/(lambda*mean_k_concentrated[i]+phi(x_concentrated[n,i]));
             outside_integral_noref[i] = (lambda*mean(K.(x_noref[n,i], x_noref[n,:]).*(x_noref[n,:] .- x_noref[n,i]*exp(-beta)))*exp(-beta)/varK - phi(x_noref[n,i])*x_noref[n,i])/(lambda*mean_k_noref[i]+phi(x_noref[n,i]));
         end
     
         inside_integral = zeros(N, 1);
+        inside_integral_diffuse = zeros(N, 1);
+        inside_integral_concentrated = zeros(N, 1);
         inside_integral_noref = zeros(N, 1);
         for i=1:N
-            integrand = (-lambda*K.(x[n,:], x[n, i]).*(x[n,i] .- x[n,:]*exp(-beta))/varK)./
-            (lambda*mean_k .+ phi(x[n,:]));
+            integrand = (-lambda*K.(x_target[n,:], x_target[n, i]).*(x_target[n,i] .- x_target[n,:]*exp(-beta))/varK)./
+            (lambda*mean_k .+ phi(x_target[n,:]));
             inside_integral[i] = mean(integrand);
+            integrand_diffuse = (-lambda*K.(x_diffuse[n,:], x_diffuse[n, i]).*(x_diffuse[n,i] .- x_diffuse[n,:]*exp(-beta))/varK)./
+            (lambda*mean_k .+ phi(x_diffuse[n,:]));
+            inside_integral_diffuse[i] = mean(integrand_diffuse);
+            integrand_concentrated = (-lambda*K.(x_concentrated[n,:], x_concentrated[n, i]).*(x_concentrated[n,i] .- x_concentrated[n,:]*exp(-beta))/varK)./
+            (lambda*mean_k .+ phi(x_diffuse[n,:]));
+            inside_integral_concentrated[i] = mean(integrand_concentrated);
             integrand_noref = (-lambda*K.(x_noref[n,:], x_noref[n, i]).*(x_noref[n,i] .- x_noref[n,:]*exp(-beta))/varK)./
             (lambda*mean_k_noref .+ phi(x_noref[n,:]));
             inside_integral_noref[i] = mean(integrand_noref);
@@ -178,13 +200,17 @@ function wgf2kind_toy_gaussian_noreference(N, dt, Niter, alpha_param, x0, m0, si
     
         # gradient and drift
         drift = inside_integral + outside_integral;
+        drift_diffuse = inside_integral_diffuse + outside_integral_diffuse;
+        drift_concentrated = inside_integral_concentrated + outside_integral_concentrated;
         drift_noref = inside_integral_noref + outside_integral_noref;
         # update locations
         Z = randn(N, 1);
-        x[n+1, :] = x[n, :] .+ dt * drift .+ sqrt(2*(1+alpha_param)*dt)*Z;
+        x_target[n+1, :] = x_target[n, :] .+ dt * drift .+ sqrt(2*(1+alpha_param)*dt)*Z;
+        x_diffuse[n+1, :] = x_diffuse[n, :] .+ dt * drift_diffuse .+ sqrt(2*(1+alpha_param)*dt)*Z;
+        x_concentrated[n+1, :] = x_concentrated[n, :] .+ dt * drift_concentrated .+ sqrt(2*(1+alpha_param)*dt)*Z;
         x_noref[n+1, :] = x_noref[n, :] .+ dt * drift_noref .+ sqrt(2*(1+alpha_param)*dt)*Z;
     end
-    return x, x_noref
+    return x_target, x_noref, x_concentrated, x_diffuse
 end
 
 
