@@ -80,6 +80,6 @@ end
 sum((x[Niter, :] .<= 1) .* (x[Niter, :] .>= -1))/Nparticles
 
 
-p1 = plot(xq, solution_nystrom, label = "Nystrom", lw = 3, linestyle = :dash, color = :gray)
+p1 = plot(xq, solution_nystrom, label = "Nystrom", lw = 3, linestyle = :dash, color = :gray, tickfontsize = 15)
 plot!(p1, xq, pi_solution_wgf, label = "FE2kind-WGF", lw = 3, linestyle = :dot, color = :gray, legendfontsize = 8, legend=:topright)
 # savefig(p1, "kl_squared_exponential.pdf")

@@ -87,7 +87,7 @@ for i=1:length(xq)
     pi_solution_wgf[i] = lambda*mean(K.(xq[i], x[Niter, :]))
 end
 
-p1 = plot(xq, eigenfun.(xq), label = "analytic", lw = 3, linestyle = :solid, color = :black)
+p1 = plot(xq, eigenfun.(xq), label = "analytic", lw = 3, linestyle = :solid, color = :black, tickfontsize = 15)
 plot!(p1, xq, solution_nystrom, label = "Nystrom", lw = 3, linestyle = :dash, color = :gray)
 plot!(p1, xq, pi_solution_wgf, label = "FE2kind-WGF", lw = 3, linestyle = :dot, color = :gray, legendfontsize = 8, legend=:topright)
 # savefig(p1, "kl_exponential.pdf")

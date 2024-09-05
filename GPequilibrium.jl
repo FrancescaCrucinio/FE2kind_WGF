@@ -11,6 +11,7 @@ using LaTeXStrings
 using RCall;
 @rimport ks as rks;
 using wgf2kind;
+using samplers;
 
 # set seed
 Random.seed!(12345);
@@ -119,7 +120,7 @@ for i=1:length(xq)
     pi_solution_wgf[i] = mean(K.(xq[i], x[Niter, :]))
 end
 
-p1 = plot(xq, u, label = "Nystrom", lw = 3, linestyle = :dash, color = :gray)
+p1 = plot(xq, u, label = "Nystrom", lw = 3, linestyle = :dash, color = :gray, tickfontsize = 15)
 plot!(p1, xq, pi_solution_wgf, label = "FE2kind-WGF", 
 lw = 3, linestyle = :dot, color = :gray, legendfontsize = 10, legend=:topleft)
 # savefig(p1, "gp_ssm.pdf")
@@ -136,7 +137,7 @@ for i=1:M
 end
 
 
-p2 = histogram(x_new, normalize = :pdf, bins = 200, color = :gray, label = "FE2kind-WGF", alpha = 0.3)
+p2 = histogram(x_new_wgf, normalize = :pdf, bins = 200, color = :gray, label = "FE2kind-WGF", alpha = 0.3, tickfontsize = 15)
 histogram!(p2, x_new_nystrom, normalize = :pdf, bins = 200, color = :red, label = "Nystrom", alpha = 0.2)
 plot!(p2, xq, pi_solution_wgf, lw = 3, linestyle = :dashdot, color = :black, label = "FE2kind-WGF",
 legendfontsize = 10, legend=:topleft)
