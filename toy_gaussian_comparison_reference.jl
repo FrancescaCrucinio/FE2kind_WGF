@@ -6,9 +6,11 @@ using Statistics;
 using StatsBase;
 using Random;
 using RCall;
+using DelimitedFiles;
 @rimport ks as rks;
 using wgf2kind;
 using RJmcmc_2kind;
+
 
 # set seed
 Random.seed!(1234);
@@ -81,7 +83,7 @@ for i=1:Nalphas
 end
 
 plt1 = plot(alphas[:], mean(ise_ref, dims = 1)[:], label = "target", 
-    lw = 5, linestyle = :dot, color = :gray, legend = false)
+    lw = 5, linestyle = :dot, color = :gray, legend = false, tickfontsize=15)
 plot!(plt1, alphas[:], mean(ise_ref_diffuse, dims = 1)[:], label = "diffuse", 
     legendfontsize = 15, lw = 3, linestyle = :dash, color = :gray)
 plot!(plt1, alphas[:], mean(ise_ref_concentrated, dims = 1)[:], label = "concentrated", 
@@ -91,7 +93,7 @@ plot!(plt1, alphas[:], mean(ise_noref, dims = 1)[:], label = "no reference",
 # savefig(plt1, "ise_toy_gaussian_reference.pdf")
 
 plt2 = plot(alphas[:], mean(mean_ref.^2, dims = 1)[:], label = "target", 
-    lw = 3, linestyle = :dot, color = :gray, legend = false)
+    lw = 3, linestyle = :dot, color = :gray, legend = false, tickfontsize=15)
 plot!(plt2, alphas[:], mean(mean_ref_diffuse.^2, dims = 1)[:], label = "diffuse", 
     legendfontsize = 15, lw = 3, linestyle = :dash, color = :gray)
 plot!(plt2, alphas[:], mean(mean_ref_concentrated.^2, dims = 1)[:], label = "concentrated", 
@@ -101,7 +103,7 @@ plot!(plt2, alphas[:], mean(mean_noref.^2, dims = 1)[:], label = "no reference",
 # savefig(plt2, "mean_toy_gaussian_reference.pdf")
 
 plt3 = plot(alphas[:], mean((var_ref .- 1).^2, dims = 1)[:], label = "target", 
-    lw = 3, linestyle = :dot, color = :gray)
+    lw = 3, linestyle = :dot, color = :gray, tickfontsize=15)
 plot!(plt3, alphas[:], mean((var_ref_diffuse .- 1).^2, dims = 1)[:], label = "diffuse", 
     legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dash, color = :gray)
 plot!(plt3, alphas[:], mean((var_ref_concentrated .- 1).^2, dims = 1)[:], label = "concentrated", 
@@ -109,3 +111,15 @@ plot!(plt3, alphas[:], mean((var_ref_concentrated .- 1).^2, dims = 1)[:], label 
 plot!(plt3, alphas[:], mean((var_noref .- 1).^2, dims = 1)[:], label = "no reference", 
     legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :solid, color = :black)
 # savefig(plt3, "variance_toy_gaussian_reference.pdf")
+
+open("alpha_comparison_ise.txt", "w") do io
+    writedlm(io, [alphas ise_ref' ise_ref_diffuse' ise_ref_concentrated' ise_noref'], ',')
+end
+
+open("alpha_comparison_mean.txt", "w") do io
+    writedlm(io, [alphas mean_ref' mean_ref_diffuse' mean_ref_concentrated' mean_noref'], ',')
+end
+
+open("alpha_comparison_var.txt", "w") do io
+    writedlm(io, [alphas var_ref' var_ref_diffuse' var_ref_concentrated' var_noref'], ',')
+end

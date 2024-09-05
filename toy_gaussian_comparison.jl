@@ -105,7 +105,7 @@ for i=1:Nlambdas
 end
 
 plt1 = plot(lambdas, mean(iseRJ, dims = 1)[:], label = "RJ-MCMC", 
-    lw = 3, linestyle = :solid, color = :black)
+    lw = 3, linestyle = :solid, color = :black, tickfontsize=15)
 plot!(plt1, lambdas, mean(iseWGF, dims = 1)[:], label = "FE2kind-WGF, target", 
     legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dot, color = :gray)
 plot!(plt1, lambdas, mean(iseWGF_diffuse, dims = 1)[:], label = "FE2kind-WGF, diffuse", 
@@ -116,7 +116,7 @@ plot!(plt1, lambdas, mean(iseWGF_concentrated, dims = 1)[:], label = "FE2kind-WG
 
 
 plt2 = plot(lambdas, mean(meanRJ.^2, dims = 1)[:], label = "RJ-MCMC", 
-    lw = 3, linestyle = :solid, color = :black)
+    lw = 3, linestyle = :solid, color = :black, tickfontsize=15)
 plot!(plt2, lambdas, mean(meanWGF.^2, dims = 1)[:], label = "FE2kind-WGF, target", 
     legendfontsize = 15, legend=:topleft, lw = 3, linestyle = :dot, color = :gray)
 plot!(plt2, lambdas, mean(meanWGF_diffuse.^2, dims = 1)[:], label = "FE2kind-WGF, diffuse", 
@@ -126,7 +126,7 @@ plot!(plt2, lambdas, mean(meanWGF_concentrated.^2, dims = 1)[:], label = "FE2kin
 
 
 plt3 = plot(lambdas, mean((varRJ .- 1).^2, dims = 1)[:], label = "RJ-MCMC", 
-    lw = 3, linestyle = :solid, color = :black, legend = false)
+    lw = 3, linestyle = :solid, color = :black, legend = false, tickfontsize=15)
 plot!(plt3, lambdas, mean((varWGF .- 1).^2, dims = 1)[:], label = "FE2kind-WGF, target", 
     legendfontsize = 15, lw = 3, linestyle = :dot, color = :gray)
 plot!(plt3, lambdas, mean((varWGF_diffuse .- 1).^2, dims = 1)[:], label = "FE2kind-WGF, diffuse", 
@@ -142,3 +142,16 @@ mean(tRJ, dims = 1)
 mean(tWGF, dims = 1)
 mean(tWGF_diffuse, dims = 1)
 mean(tWGF_concentrated, dims = 1)
+
+
+open("lambda_comparison_ise.txt", "w") do io
+    writedlm(io, [lambdas iseRJ' iseWGF' iseWGF_diffuse' iseWGF_concentrated'], ',')
+end
+
+open("lambda_comparison_mean.txt", "w") do io
+    writedlm(io, [lambdas meanRJ' meanWGF' meanWGF_diffuse' meanWGF_concentrated'], ',')
+end
+
+open("lambda_comparison_var.txt", "w") do io
+    writedlm(io, [lambdas varRJ' varWGF' varWGF_diffuse' varWGF_concentrated'], ',')
+end
